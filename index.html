@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía Profesores: Creación de Contenido con Claude</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F7F2;--surface:#FFFFFF;--surface2:#EDF0E8;
+  --border:#DDE2D6;--border2:#C4CCBC;
+  --text:#1A1F16;--text2:#606860;--text3:#96A090;
+  --accent:#2E7D52;--accent-light:#E3F2EA;--accent-mid:#5AAF80;
+  --gold:#7A5C0A;--gold-light:#FBF3DC;
+  --blue:#2A5298;--blue-light:#E8EEFB;
+  --coral:#B84A2D;--coral-light:#FDEEE9;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--r-lg:14px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.shell{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:24px 20px 18px;border-bottom:1px solid var(--border)}
+.logo-eyebrow{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.logo-title{font-size:15px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:12px;color:var(--text3);margin-top:3px}
+.sidebar-nav{padding:10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;transition:all .15s;margin-bottom:2px;font-size:13px;color:var(--text2);border:1px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);border-color:#A8D8BC;font-weight:500}
+.nav-item.done{color:var(--text2)}
+.nav-num{width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--text3);flex-shrink:0;transition:all .15s}
+.nav-item.active .nav-num{background:var(--accent);color:#fff}
+.nav-item.done .nav-num{background:var(--accent-light);color:var(--accent)}
+.nav-label{flex:1;line-height:1.3}
+.nav-check{font-size:11px;color:var(--accent);display:none}
+.nav-item.done .nav-check{display:block}
+.sidebar-footer{padding:14px 20px;border-top:1px solid var(--border)}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px;color:var(--text3)}
+.progress-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease}
+
+/* MAIN */
+.main{flex:1;max-width:800px;padding:40px 48px}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* SECTION HEADER */
+.sec-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.sec-icon{width:52px;height:52px;border-radius:14px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.sec-title{font-size:22px;font-weight:600;line-height:1.2;color:var(--text)}
+.sec-sub{font-size:14px;color:var(--text2);margin-top:5px;line-height:1.55}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:14px}
+.card-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.card-text{font-size:14px;color:var(--text2);line-height:1.75}
+
+/* STEPS */
+.step-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.step-row{display:flex;gap:14px;align-items:flex-start;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.step-row.clickable{cursor:pointer;transition:border-color .15s}
+.step-row.clickable:hover{border-color:var(--accent-mid)}
+.step-dot{width:28px;height:28px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-title-sm{font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.65}
+
+/* CODE */
+.code-label{background:#2A2840;color:#8B82C4;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:7px 16px;border-radius:var(--r) var(--r) 0 0;font-family:var(--mono)}
+.code-block{background:#1C1A2E;border-radius:var(--r);padding:16px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.8;color:#C8C4E8;margin-bottom:14px;white-space:pre-wrap;word-break:break-word}
+.code-block.attached{border-radius:0 0 var(--r) var(--r)}
+
+/* TIPS */
+.tip{display:flex;gap:12px;padding:14px 16px;border-radius:var(--r);margin-bottom:14px;font-size:13px;line-height:1.7}
+.tip-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.tip.info{background:var(--blue-light);color:var(--blue);border:1px solid #B0C4EE}
+.tip.warn{background:var(--gold-light);color:var(--gold);border:1px solid #EDD890}
+.tip.success{background:var(--accent-light);color:var(--accent);border:1px solid #A8D8BC}
+.tip.danger{background:var(--coral-light);color:var(--coral);border:1px solid #F0B0A0}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--accent-light);color:var(--accent)}
+.badge-gold{background:var(--gold-light);color:var(--gold)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-coral{background:var(--coral-light);color:var(--coral)}
+
+/* MEGAPROMPT */
+.mp-outer{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
+.mp-bar{background:var(--surface2);padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.mp-body{padding:22px 24px;font-size:13.5px;line-height:1.85;color:var(--text);max-height:500px;overflow-y:auto;background:var(--surface)}
+.mp-body p{margin-bottom:14px}
+.mp-body p:last-child{margin-bottom:0}
+.mp-resource{margin-bottom:16px}
+.mp-res-title{font-weight:600;color:var(--text);font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.mp-res-body{font-size:13px;color:var(--text2);line-height:1.75;padding-left:14px;border-left:2px solid var(--accent-light)}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.metric-card{background:var(--surface2);border-radius:var(--r);padding:16px}
+.metric-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.metric-val{font-size:26px;font-weight:600;color:var(--text)}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* TIMELINE (overview) */
+.timeline{display:flex;flex-direction:column;gap:0;margin-bottom:14px;position:relative}
+.tl-item{display:flex;gap:16px;align-items:flex-start;padding:0 0 20px 0;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:36px}
+.tl-dot{width:36px;height:36px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;border:2px solid var(--bg)}
+.tl-line{width:2px;flex:1;background:var(--border);min-height:24px;margin:2px 0}
+.tl-item:last-child .tl-line{display:none}
+.tl-content{flex:1;padding-top:6px;cursor:pointer}
+.tl-content:hover .tl-title{color:var(--accent)}
+.tl-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;transition:color .15s}
+.tl-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* CHECKLIST */
+.check-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;user-select:none;line-height:1.5}
+.check-item:hover{border-color:var(--border2)}
+.check-item.done{background:var(--accent-light);border-color:#A8D8BC;color:var(--accent);text-decoration:line-through;opacity:.75}
+.check-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;margin-top:1px}
+.check-item.done .check-box{background:var(--accent);border-color:var(--accent);color:white}
+
+/* NAV */
+.nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:20px;border-top:1px solid var(--border)}
+.btn{padding:9px 20px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:var(--font)}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn-primary:hover{background:#256644}
+.btn:disabled{opacity:.35;cursor:default}
+.done-banner{display:none;padding:16px 20px;background:var(--accent-light);border:1px solid #A8D8BC;border-radius:var(--r-lg);color:var(--accent);font-size:14px;font-weight:500;margin-top:12px;align-items:center;gap:10px}
+
+em{font-style:normal;font-weight:500;color:var(--text)}
+strong{font-weight:600}
+
+@media(max-width:720px){.sidebar{display:none}.main{padding:24px 20px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-eyebrow">Guía para profesores</div>
+    <div class="logo-title">Creación de contenido</div>
+    <div class="logo-sub">con Claude · Griky</div>
+  </div>
+  <nav class="sidebar-nav" id="sideNav"></nav>
+  <div class="sidebar-footer">
+    <div class="progress-label"><span>Tu progreso</span><span id="progLabel">0 / 6</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- 0 BIENVENIDA -->
+<div class="section active" id="sec0">
+  <div class="sec-header">
+    <div class="sec-icon">👩‍🏫</div>
+    <div>
+      <div class="sec-title">Bienvenida, Profesor(a)</div>
+      <div class="sec-sub">Este aplicativo les explicará el paso a paso para optimizar la creación de contenido de sus cursos con ayuda de Claude.</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="metric-card">
+      <div class="metric-label">Pasos del proceso</div>
+      <div class="metric-val">6</div>
+      <div class="metric-sub">De la cuenta a las iteraciones</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Recuerda siempre</div>
+      <div class="metric-val">🧑‍💼</div>
+      <div class="metric-sub">El experto disciplinar eres tú</div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">1</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(1)">
+        <div class="tl-title">Creación del proyecto en Claude</div>
+        <div class="tl-desc">Crear tu cuenta, ingresar a Claude y configurar el proyecto con el nombre de tu curso</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">2</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(2)">
+        <div class="tl-title">Carga de archivos</div>
+        <div class="tl-desc">Adjuntar el sílabo o plan del curso — el insumo principal del proyecto</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">3</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(3)">
+        <div class="tl-title">Construcción del megaprompt</div>
+        <div class="tl-desc">Escribir las instrucciones del curso en el campo "Instrucciones" y guardar</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">4</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(4)">
+        <div class="tl-title">Inicio de creación</div>
+        <div class="tl-desc">Abrir un chat en el proyecto y empezar a construir el contenido base</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">5</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(5)">
+        <div class="tl-title">Iteraciones y revisión</div>
+        <div class="tl-desc">Cómo revisar, ajustar y mejorar el contenido en cada semana del curso</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot">✓</div><div class="tl-line"></div></div>
+      <div class="tl-content" onclick="goTo(6)">
+        <div class="tl-title">Checklist de cierre</div>
+        <div class="tl-desc">Verificar que el contenido base está listo para la construcción de recursos educativos (MPA)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip success">
+    <span class="tip-icon">💡</span>
+    <div>Navega sección a sección usando los botones de abajo o el menú lateral. Puedes marcar cada fase como completada a medida que avanzas.</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" disabled>← Anterior</button>
+    <button class="btn btn-primary" onclick="goTo(1)">Comenzar →</button>
+  </div>
+</div>
+
+<!-- 1 CREACIÓN DE PROYECTO -->
+<div class="section" id="sec1">
+  <div class="sec-header">
+    <div class="sec-icon">📁</div>
+    <div>
+      <div class="sec-title">Creación del proyecto</div>
+      <div class="sec-sub">Para iniciar, debes ingresar a Claude y crear un proyecto con el nombre de tu curso</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Paso a paso</div>
+    <div class="step-list" style="margin-bottom:0">
+      <div class="step-row">
+        <div class="step-dot">1</div>
+        <div>
+          <div class="step-title-sm">Crea tu cuenta en Claude</div>
+          <div class="step-desc">Si no tienes una cuenta, ve a <em>claude.ai</em> y asocia un correo — puede ser Gmail. Activa la cuenta desde el correo de confirmación.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">2</div>
+        <div>
+          <div class="step-title-sm">Busca la opción de Proyectos</div>
+          <div class="step-desc">Una vez dentro de Claude, en el <em>panel izquierdo</em> busca la opción de <em>Proyectos</em></div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">3</div>
+        <div>
+          <div class="step-title-sm">Clic en "Crear proyecto"</div>
+          <div class="step-desc">Esto abrirá el panel de configuración de tu nuevo proyecto</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">4</div>
+        <div>
+          <div class="step-title-sm">Asigna el nombre del proyecto</div>
+          <div class="step-desc">La sugerencia es que el proyecto <em>siempre</em> tenga el nombre de: <strong>Contenido - [nombre del curso]</strong><br>Ejemplo: <em>Contenido – Estadística Aplicada</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip warn">
+    <span class="tip-icon">⚠️</span>
+    <div><strong>Convención de nombre — siempre obligatoria:</strong><br>Formato: <em>Contenido - [Nombre del curso]</em><br>Ejemplo: <em>Contenido – Estadística Aplicada</em></div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(0)">← Anterior</button>
+    <button class="btn btn-primary" onclick="markDone(1);goTo(2)">Siguiente →</button>
+  </div>
+</div>
+
+<!-- 2 ARCHIVOS -->
+<div class="section" id="sec2">
+  <div class="sec-header">
+    <div class="sec-icon">📎</div>
+    <div>
+      <div class="sec-title">Carga de archivos</div>
+      <div class="sec-sub">Una vez creado el proyecto, debes ingresar a él y adjuntar el sílabo o plan del curso</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Cómo adjuntar el sílabo</div>
+    <div class="step-list" style="margin-bottom:0">
+      <div class="step-row">
+        <div class="step-dot">1</div>
+        <div>
+          <div class="step-title-sm">Ingresa al proyecto que acabas de crear</div>
+          <div class="step-desc">Haz clic en el proyecto desde el panel izquierdo de Claude</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">2</div>
+        <div>
+          <div class="step-title-sm">En la sección "Archivos" da clic en el signo <em>+</em></div>
+          <div class="step-desc">Este botón se encuentra en el <em>panel derecho</em> del proyecto</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">3</div>
+        <div>
+          <div class="step-title-sm">Adjunta el sílabo o plan del curso</div>
+          <div class="step-desc">Este insumo es muy valioso pues ayuda a estar alineados con lo que posteriormente se consignará en la <em>MPA</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip info">
+    <span class="tip-icon">📌</span>
+    <div><strong>Importante:</strong> El sílabo o plan del curso es dado por la universidad — <em>no por Griky</em>. Asegúrate de tener este documento antes de continuar.</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(1)">← Anterior</button>
+    <button class="btn btn-primary" onclick="markDone(2);goTo(3)">Siguiente →</button>
+  </div>
+</div>
+
+<!-- 3 MEGAPROMPT -->
+<div class="section" id="sec3">
+  <div class="sec-header">
+    <div class="sec-icon">🧠</div>
+    <div>
+      <div class="sec-title">El Megaprompt</div>
+      <div class="sec-sub">Cuando hayas cargado los documentos, da clic en "Instrucciones" en el panel derecho — ahí se construye el prompt, que es la esencia del proyecto.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Qué debes incluir en tu megaprompt</div>
+    <div class="step-list" style="margin-bottom:0">
+      <div class="step-row">
+        <div class="step-dot">→</div>
+        <div>
+          <div class="step-title-sm">Particularidades de tu curso</div>
+          <div class="step-desc">País donde se dictará el curso (importante para el lenguaje y los ejemplos), nivel académico (pregrado o posgrado), nombre exacto del curso</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">→</div>
+        <div>
+          <div class="step-title-sm">Descripción de los temas generales de las 13 semanas</div>
+          <div class="step-desc">Describe los temas que abordarás en las 13 semanas del curso. Claude los articulará con el sílabo que adjuntaste. Indica que debe incluir una <em>tabla de contenido</em> señalando en qué semana va cada tema.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">→</div>
+        <div>
+          <div class="step-title-sm">Cómo quieres el contenido y su extensión</div>
+          <div class="step-desc">Describe cómo quieres el contenido de cada tema e indica una <em>extensión aproximada</em> por tema (ej: 12 páginas por desarrollo teórico)</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">→</div>
+        <div>
+          <div class="step-title-sm">Uso de fuentes</div>
+          <div class="step-desc">Indica si quieres fuentes de los últimos 5 años, si solo integras libros o artículos, y el formato de citación (normas APA)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mp-outer">
+    <div class="mp-bar">
+      <span>📋 Ejemplo real de megaprompt · Estadística Aplicada · Chile</span>
+      <span class="badge badge-green">Megaprompt completo</span>
+    </div>
+    <div class="mp-body">
+      <p>Necesito que creemos un contenido base de un curso de estadística aplicada para pregrado. Este contenido base debe abarcar la descripción general de las 13 semanas que componen el curso y que debes articular con el plan de curso y/o sílabo que te adjunté. Es muy importante que incluyas una tabla de contenido e indiques en qué semana va el tema a desarrollar. Por cada tema haz una descripción, integra ejemplos aplicados, ten presente que el contexto en el que se desarrollará el curso es en Chile, para que uses su lenguaje y ejemplos aplicados al contexto del país, para que cuando sea necesario hacer ejemplos, estén enfocados en ese país. Sin descartar que hayan ejemplos internacionales que puedan aportar al desarrollo.</p>
+      <p><strong>Importante:</strong> Este insumo debe ser académico, cada tema debe relacionarse entre sí, ya que es el insumo base para la posterior creación de recursos educativos del curso. Por ello, maneja una coherencia y cohesión en el desarrollo teórico.</p>
+      <div class="mp-resource">
+        <div class="mp-res-title">📄 Desarrollo teórico</div>
+        <div class="mp-res-body">Es la base teórica y base principal de todos los recursos, son documentos de 12 páginas que deben alojar toda la teoría y conceptos, deben sumarse como mínimo 2 imágenes y 2 tablas. Dependiendo de la temática, puede que se requiera más imágenes. Todas citadas en normas APA.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip danger">
+    <span class="tip-icon">💾</span>
+    <div><strong>IMPORTANTE GUARDAR</strong> — Cuando hayas descrito todas las instrucciones necesarias y consideres que está listo el prompt, da clic en <em>Guardar</em>. Sin guardar las instrucciones no quedan activas en el proyecto.</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(2)">← Anterior</button>
+    <button class="btn btn-primary" onclick="markDone(3);goTo(4)">Siguiente →</button>
+  </div>
+</div>
+
+<!-- 4 INICIO DE CREACIÓN -->
+<div class="section" id="sec4">
+  <div class="sec-header">
+    <div class="sec-icon">🚀</div>
+    <div>
+      <div class="sec-title">Inicio de creación</div>
+      <div class="sec-sub">Al crear el contenido del curso, debes iniciar un chat dentro del proyecto que creaste</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Antes de escribir el primer mensaje</div>
+    <div class="step-list" style="margin-bottom:0">
+      <div class="step-row">
+        <div class="step-dot">1</div>
+        <div>
+          <div class="step-title-sm">Inicia un chat nuevo dentro del proyecto</div>
+          <div class="step-desc">Haz clic en <em>"Nuevo chat"</em> dentro del mismo proyecto. Así el chat hereda automáticamente todas las instrucciones del megaprompt</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">2</div>
+        <div>
+          <div class="step-title-sm">Puedes subir material complementario en esta conversación</div>
+          <div class="step-desc">Si tienes modelos, ejemplos o artículos que quieras integrar al contenido, adjúntalos en este chat e indica en qué semana deseas integrarlos</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">3</div>
+        <div>
+          <div class="step-title-sm">Itera con la herramienta antes de generar el documento final</div>
+          <div class="step-desc">Siempre pide primero ver el resultado en el panel de conversación. Solo cuando des el aval, Claude generará el documento en formato Word</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip warn">
+    <span class="tip-icon">⚠️</span>
+    <div><strong>Recuerda:</strong> El contenido tiene una extensión de <em>12 páginas</em> y debe integrar los temas para que se relacionen con las <em>13 semanas del curso</em>. No generes todo de una vez — revisa semana a semana.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Prompt de inicio — adapta solo el nombre del curso y el material</div>
+    <div class="code-block" style="margin-bottom:0;font-size:12.5px">Vamos a crear el contenido del curso "[nombre del curso]". 
+Para ello te voy a compartir un modelo / ejemplo / artículo 
+que quiero que integres en la semana [número].
+
+Ten presente que este es el insumo base, tendrá una extensión 
+de 12 páginas y debemos integrar los temas para que se 
+relacionen con las 13 semanas del curso.
+
+Ten presente todas las indicaciones del proyecto. Iniciemos 
+con el desarrollo teórico.
+
+Antes de generar un documento, debes mostrarme en el panel 
+de conversación el resultado para ir revisando. Si te doy el 
+aval, puedes continuar generando el documento en formato Word.</div>
+  </div>
+
+  <div class="tip success">
+    <span class="tip-icon">💡</span>
+    <div>Recuerda que <em>el experto disciplinar eres tú</em>. Puedes integrar los elementos que consideres necesarios para tu curso en cualquier momento de la conversación.</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(3)">← Anterior</button>
+    <button class="btn btn-primary" onclick="markDone(4);goTo(5)">Siguiente →</button>
+  </div>
+</div>
+
+<!-- 5 ITERACIONES -->
+<div class="section" id="sec5">
+  <div class="sec-header">
+    <div class="sec-icon">🔄</div>
+    <div>
+      <div class="sec-title">Iteraciones y revisión</div>
+      <div class="sec-sub">Siempre debes revisar e iterar con Claude — en cada semana y en cada recurso que generes</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Qué revisar siempre — en cada semana y recurso</div>
+    <div class="step-list" style="margin-bottom:0">
+      <div class="step-row">
+        <div class="step-dot">1</div>
+        <div>
+          <div class="step-title-sm">Contexto de los ejemplos según el nivel del curso</div>
+          <div class="step-desc">Es necesario que los ejemplos tengan un contexto de acuerdo con el nivel del curso y que se entienda claramente su aplicación práctica en el país donde se dicta</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">2</div>
+        <div>
+          <div class="step-title-sm">Fórmulas matemáticas aplicadas en ejemplos resueltos</div>
+          <div class="step-desc">Usualmente cuando integra fórmulas matemáticas, revisa siempre que no solo las muestre sino que las <em>aplique en un ejemplo resuelto</em></div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">3</div>
+        <div>
+          <div class="step-title-sm">Referencias citadas y links de referencia válidos</div>
+          <div class="step-desc">Revisa las referencias y que estén correctamente citadas en normas APA. También revisa los links de referencia y que sean accesibles</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">4</div>
+        <div>
+          <div class="step-title-sm">Lenguaje ajustado a las especificidades del curso</div>
+          <div class="step-desc">Puedes indicarle que amplíe o modifique el lenguaje según las especificidades de tu curso: nivel académico, terminología disciplinar, registro</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot">5</div>
+        <div>
+          <div class="step-title-sm">Continuidad e ilación pedagógica entre semanas</div>
+          <div class="step-desc">Siempre revisa que las semanas tengan continuidad. No deben repetir temas, pero sí mantener la <em>ilación pedagógica</em>. Usa el prompt de abajo al avanzar de semana.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Prompt para pasar a la siguiente semana</div>
+    <div class="code-block" style="margin-bottom:0;font-size:12.5px">Ahora vamos a continuar con la semana [número].
+
+En la semana anterior abordamos [temas de la semana anterior].
+
+No repitas esos temas, pero es indispensable que se mantenga 
+la ilación pedagógica con lo desarrollado anteriormente.</div>
+  </div>
+
+  <div class="tip success">
+    <span class="tip-icon">🎓</span>
+    <div>Este es un paso a paso general que te ayudará a la creación del contenido base. Recuerda que <em>el experto disciplinar eres tú</em> y puedes integrar los elementos que consideres. Este contenido es el que se utilizará para la construcción de los recursos educativos descritos en la <em>MPA</em>.</div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(4)">← Anterior</button>
+    <button class="btn btn-primary" onclick="markDone(5);goTo(6)">Ver checklist →</button>
+  </div>
+</div>
+
+<!-- 6 CHECKLIST -->
+<div class="section" id="sec6">
+  <div class="sec-header">
+    <div class="sec-icon">✅</div>
+    <div>
+      <div class="sec-title">Checklist de cierre</div>
+      <div class="sec-sub">Marca cada ítem antes de dar el contenido base por listo para la construcción de recursos educativos (MPA)</div>
+    </div>
+  </div>
+  <div class="check-list" id="checkList"></div>
+  <div class="done-banner" id="doneBanner">🎉 ¡Contenido base listo! Puedes avanzar a la construcción de recursos educativos en la MPA.</div>
+  <div style="margin-top:14px"><button class="btn" onclick="resetChecks()" style="color:var(--text3);font-size:12px">Reiniciar lista</button></div>
+  <div class="nav-buttons">
+    <button class="btn" onclick="goTo(5)">← Anterior</button>
+    <button class="btn" disabled>Fin del proceso ✓</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+const SECTIONS=[
+  {label:'Bienvenida'},{label:'Creación del proyecto'},{label:'Carga de archivos'},
+  {label:'El Megaprompt'},{label:'Inicio de creación'},
+  {label:'Iteraciones'},{label:'Checklist de cierre'}
+];
+const CHECKS=[
+  'Tengo cuenta activa en Claude (claude.ai)',
+  'El proyecto fue creado con el nombre: "Contenido - [nombre del curso]"',
+  'El sílabo o plan del curso fue adjuntado en la sección Archivos del proyecto',
+  'El megaprompt incluye: país, nivel académico, descripción de las 13 semanas, extensión por tema y uso de fuentes',
+  'El megaprompt fue GUARDADO en el campo "Instrucciones" del proyecto',
+  'El contenido se está construyendo semana a semana — con revisión antes de generar cada documento',
+  'Los ejemplos tienen contexto adecuado al país y nivel del curso',
+  'Las fórmulas matemáticas están aplicadas en ejemplos resueltos (no solo mostradas)',
+  'Las referencias están citadas en normas APA y los links fueron verificados',
+  'La ilación pedagógica entre semanas fue revisada con el prompt de continuidad',
+  'El contenido base (12 páginas totales describiendo las 13 semanas del curso) está listo para enviarse a construcción de recursos educativos',
+];
+let current=0;
+const done=new Set();
+let checks=new Array(CHECKS.length).fill(false);
+
+function buildNav(){
+  const nav=document.getElementById('sideNav');
+  const icons=['👩‍🏫','📁','📎','🧠','🚀','🔄','✅'];
+  SECTIONS.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='nav-item'+(i===0?' active':'');
+    div.id='nav'+i;
+    div.onclick=()=>goTo(i);
+    div.innerHTML=`<div class="nav-num">${i===0?icons[0]:i}</div><div class="nav-label">${s.label}</div><span class="nav-check">✓</span>`;
+    nav.appendChild(div);
+  });
+}
+
+function buildChecks(){
+  const list=document.getElementById('checkList');
+  CHECKS.forEach((txt,i)=>{
+    const div=document.createElement('div');
+    div.className='check-item';div.id='chk'+i;
+    div.onclick=()=>toggleCheck(i);
+    div.innerHTML=`<div class="check-box" id="chkbox${i}"></div><span>${txt}</span>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleCheck(i){
+  checks[i]=!checks[i];
+  document.getElementById('chk'+i).classList.toggle('done',checks[i]);
+  document.getElementById('chkbox'+i).textContent=checks[i]?'✓':'';
+  document.getElementById('doneBanner').style.display=checks.every(Boolean)?'flex':'none';
+}
+
+function resetChecks(){
+  checks.fill(false);
+  CHECKS.forEach((_,i)=>{
+    document.getElementById('chk'+i).classList.remove('done');
+    document.getElementById('chkbox'+i).textContent='';
+  });
+  document.getElementById('doneBanner').style.display='none';
+}
+
+function goTo(n){
+  document.querySelector('#sec'+current).classList.remove('active');
+  document.querySelector('#nav'+current).classList.remove('active');
+  current=n;
+  document.querySelector('#sec'+current).classList.add('active');
+  document.querySelector('#nav'+current).classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function markDone(n){
+  done.add(n);
+  document.getElementById('nav'+n).classList.add('done');
+  updateProgress();
+}
+
+function updateProgress(){
+  const pct=Math.round(done.size/6*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLabel').textContent=done.size+' / 6';
+}
+
+buildNav();buildChecks();
+</script>
+</body>
+</html>
